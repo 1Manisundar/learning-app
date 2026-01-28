@@ -8,49 +8,37 @@ import { gemini } from './services/gemini.js';
 import { gamification } from './services/gamification.js';
 import { logger, renderErrorConsole } from './services/logger.js';
 import { snackbar } from './services/snackbar.js';
+import { icons } from './services/icons.js';
 
 import { renderSplashScreen, initSplashScreen } from './screens/splash.js';
 import { renderHomeScreen, initHomeScreen } from './screens/home.js';
 import { renderTopicsScreen, initTopicsScreen } from './screens/topics.js';
-import { renderQuizScreen, renderFeedbackScreen, renderResultsScreen, initQuizScreen } from './screens/quiz.js';
-import { renderLearnScreen, renderLessonScreen, renderLoadingLesson, initLearnScreen, LESSONS } from './screens/learn.js';
+import { renderQuizScreen, renderQuizFeedback, renderQuizResults, initQuizScreen } from './screens/quiz.js';
+import { renderLearnScreen, renderLessonDetail, initLearnScreen, LESSONS } from './screens/learn.js';
 import { renderProfileScreen, renderSettingsModal, initProfileScreen } from './screens/profile.js';
 import { renderBookmarksScreen, initBookmarksScreen } from './screens/bookmarks.js';
 
 // App State
 const state = {
   currentScreen: 'splash',
+  currentRoute: 'splash',
+  quiz: null,
+  lesson: null,
   quizSettings: {
     difficulty: 'easy',
     questionCount: 10
   },
-  quiz: {
-    topic: null,
-    questions: [],
-    currentIndex: 0,
-    selectedAnswer: null,
-    answers: [],
-    startTime: null,
-    timeRemaining: 60,
-    timerInterval: null
-  },
-  lesson: {
-    topic: null,
-    lessonId: null,
-    content: null
-  },
-  allQuestions: [], // Cache of all loaded questions
   settingsModalOpen: false
 };
 
 // Bottom Navigation Component
 function renderBottomNav() {
   const screens = [
-    { id: 'home', icon: '🏠', label: 'Home' },
-    { id: 'learn', icon: '📚', label: 'Learn' },
-    { id: 'topics', icon: '🎮', label: 'Quiz' },
-    { id: 'bookmarks', icon: '🔖', label: 'Saved' },
-    { id: 'profile', icon: '👤', label: 'Profile' }
+    { id: 'home', icon: icons.get('home', 24), label: 'Home' },
+    { id: 'learn', icon: icons.navigation.learn(), label: 'Learn' },
+    { id: 'topics', icon: icons.navigation.quiz(), label: 'Quiz' },
+    { id: 'bookmarks', icon: icons.navigation.bookmarks(), label: 'Saved' },
+    { id: 'profile', icon: icons.navigation.profile(), label: 'Profile' }
   ];
 
   return `
