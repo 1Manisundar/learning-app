@@ -1,4 +1,5 @@
 // Snackbar Notification Utility
+import feather from 'feather-icons';
 
 class SnackbarService {
     constructor() {
@@ -30,7 +31,7 @@ class SnackbarService {
         snackbar.style.cssText = `
             background: var(--surface-elevated);
             color: var(--text-primary);
-            padding: 12px 24px;
+            padding: 12px 20px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             font-size: 14px;
@@ -40,10 +41,21 @@ class SnackbarService {
             transform: translateY(20px);
             transition: all 0.3s ease;
             pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             border-left: 4px solid ${this.getColor(type)};
         `;
 
-        snackbar.textContent = message;
+        // Add icon
+        const iconName = this.getIcon(type);
+        const iconSvg = feather.icons[iconName].toSvg({
+            width: 18,
+            height: 18,
+            color: this.getColor(type)
+        });
+
+        snackbar.innerHTML = `${iconSvg}<span>${message}</span>`;
         this.container.appendChild(snackbar);
 
         // Trigger animation
@@ -58,6 +70,16 @@ class SnackbarService {
             snackbar.style.transform = 'translateY(20px)';
             setTimeout(() => snackbar.remove(), 300);
         }, duration);
+    }
+
+    getIcon(type) {
+        const icons = {
+            success: 'check-circle',
+            error: 'alert-circle',
+            warning: 'alert-triangle',
+            info: 'info'
+        };
+        return icons[type] || icons.info;
     }
 
     getColor(type) {

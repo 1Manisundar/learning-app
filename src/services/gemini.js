@@ -22,31 +22,31 @@ class GeminiService {
             if (response.status === 429) {
                 if (retries > 0) {
                     logger.warning(`Rate limit hit. Retrying in ${backoff / 1000}s...`);
-                    this.showSnackbar(`⏳ Rate limit - retrying in ${backoff / 1000}s...`, 'warning');
+                    this.showSnackbar(`Rate limit - retrying in ${backoff / 1000}s...`, 'warning');
                     await new Promise(resolve => setTimeout(resolve, backoff));
                     return this.fetchWithRetry(url, options, retries - 1, backoff * 2);
                 } else {
-                    this.showSnackbar('❌ Rate limit exceeded. Please wait a minute.', 'error');
+                    this.showSnackbar('Rate limit exceeded. Please wait a minute.', 'error');
                     throw new Error('Rate limit exceeded. Please wait a minute before trying again.');
                 }
             }
 
             if (response.status === 400) {
-                this.showSnackbar('❌ Invalid API Key. Check Settings.', 'error');
+                this.showSnackbar('Invalid API Key. Check Settings.', 'error');
                 throw new Error('Invalid API Key. Please verify your key in Settings.');
             }
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 const errorMsg = errorData.error?.message || 'Unknown error';
-                this.showSnackbar(`❌ API Error: ${errorMsg}`, 'error');
+                this.showSnackbar(`API Error: ${errorMsg}`, 'error');
                 throw new Error(`API Error: ${response.status} - ${errorMsg}`);
             }
 
             return response;
         } catch (error) {
             if (!error.message.includes('API Error') && !error.message.includes('Rate limit')) {
-                this.showSnackbar('❌ Network error. Check connection.', 'error');
+                this.showSnackbar('Network error. Check connection.', 'error');
             }
             throw error;
         }

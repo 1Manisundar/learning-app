@@ -601,12 +601,12 @@ function completeOnboarding() {
   const apiKey = apiKeyInput?.value?.trim();
 
   if (!apiKey) {
-    snackbar.error('⚠️ API Key Required - Please enter your Gemini API key to continue', 4000);
+    snackbar.error('API Key Required - Please enter your Gemini API key to continue', 4000);
     return;
   }
 
   if (!apiKey.startsWith('AIza')) {
-    snackbar.error('❌ Invalid API Key - Keys start with "AIza"', 4000);
+    snackbar.error('Invalid API Key - Keys start with "AIza"', 4000);
     return;
   }
 
@@ -709,7 +709,7 @@ function shareScore(accuracy, topic) {
     navigator.share({ text }).catch(() => { });
   } else {
     navigator.clipboard.writeText(text).then(() => {
-      snackbar.success('📋 Score copied to clipboard!');
+      snackbar.success('Score copied to clipboard!');
     });
   }
 }
@@ -788,7 +788,7 @@ function importData(input) {
       setTimeout(() => location.reload(), 1000);
     } catch (error) {
       logger.error('Failed to import data: ' + error.message);
-      snackbar.error('❌ Invalid backup file - Please check the file format');
+      snackbar.error('Invalid backup file - Please check the file format');
     }
   };
   reader.readAsText(file);
@@ -800,7 +800,7 @@ function saveApiKeyFromInput() {
     const key = input.value.trim();
     if (key) {
       storage.saveApiKey(key);
-      snackbar.success('✅ API Key saved! Using your custom quota now');
+      snackbar.success('API Key saved! Using your custom quota now');
       logger.success('Custom API Key saved');
     } else {
       if (confirm('Clear custom API Key and use default?')) {
