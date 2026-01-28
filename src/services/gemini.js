@@ -4,12 +4,15 @@
 import { logger } from './logger.js';
 import { storage } from './storage.js';
 
-const DEFAULT_API_KEY = 'AIzaSyAvwCtFIXcTBvkL0MpaOlGOhgVpp32DZyM';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
 class GeminiService {
     get apiKey() {
-        return storage.getApiKey() || DEFAULT_API_KEY;
+        const key = storage.getApiKey();
+        if (!key) {
+            throw new Error('API Key not configured. Please add your Gemini API key in Settings.');
+        }
+        return key;
     }
 
     async fetchWithRetry(url, options, retries = 3, backoff = 2000) {
@@ -19,22 +22,53 @@ class GeminiService {
             if (response.status === 429) {
                 if (retries > 0) {
                     logger.warning(`Rate limit hit. Retrying in ${backoff / 1000}s...`);
+                    this.showSnackbar(`⏳ Rate limit - retrying in ${backoff / 1000}s...`, 'warning');
                     await new Promise(resolve => setTimeout(resolve, backoff));
                     return this.fetchWithRetry(url, options, retries - 1, backoff * 2);
                 } else {
+                    this.showSnackbar('❌ Rate limit exceeded. Please wait a minute.', 'error');
                     throw new Error('Rate limit exceeded. Please wait a minute before trying again.');
                 }
             }
 
+            if (response.status === 400) {
+                this.showSnackbar('❌ Invalid API Key. Check Settings.', 'error');
+                throw new Error('Invalid API Key. Please verify your key in Settings.');
+            }
+
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(`API Error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+                const errorMsg = errorData.error?.message || 'Unknown error';
+                this.showSnackbar(`❌ API Error: ${errorMsg}`, 'error');
+                throw new Error(`API Error: ${response.status} - ${errorMsg}`);
             }
 
             return response;
         } catch (error) {
+            if (!error.message.includes('API Error') && !error.message.includes('Rate limit')) {
+                this.showSnackbar('❌ Network error. Check connection.', 'error');
+            }
             throw error;
         }
+    }
+
+    showSnackbar(message, type = 'info') {
+        // Create snackbar if doesn't exist
+        let snackbar = document.getElementById('api-snackbar');
+        if (!snackbar) {
+            snackbar = document.createElement('div');
+            snackbar.id = 'api-snackbar';
+            snackbar.className = 'toast';
+            document.body.appendChild(snackbar);
+        }
+
+        snackbar.textContent = message;
+        snackbar.className = `toast ${type}`;
+        snackbar.classList.add('show');
+
+        setTimeout(() => {
+            snackbar.classList.remove('show');
+        }, 3000);
     }
 
     async generateQuestions(topic, difficulty, count = 10) {

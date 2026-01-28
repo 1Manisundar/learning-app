@@ -7,6 +7,7 @@ import { storage } from './services/storage.js';
 import { gemini } from './services/gemini.js';
 import { gamification } from './services/gamification.js';
 import { logger, renderErrorConsole } from './services/logger.js';
+import { snackbar } from './services/snackbar.js';
 
 import { renderSplashScreen, initSplashScreen } from './screens/splash.js';
 import { renderHomeScreen, initHomeScreen } from './screens/home.js';
@@ -560,7 +561,7 @@ function practiceBookmarks() {
   );
 
   if (questions.length === 0) {
-    alert('No bookmarked questions available. Start a quiz first to load questions!');
+    snackbar.warning('No bookmarked questions available. Start a quiz first!');
     return;
   }
 
@@ -595,6 +596,24 @@ async function openLesson(topic, lessonId, lessonTitle) {
   }
 }
 
+function completeOnboarding() {
+  const apiKeyInput = document.getElementById('onboarding-api-key');
+  const apiKey = apiKeyInput?.value?.trim();
+
+  if (!apiKey) {
+    snackbar.error('⚠️ API Key Required - Please enter your Gemini API key to continue', 4000);
+    return;
+  }
+
+  if (!apiKey.startsWith('AIza')) {
+    snackbar.error('❌ Invalid API Key - Keys start with "AIza"', 4000);
+    return;
+  }
+
+  storage.saveApiKey(apiKey);
+  storage.completeOnboarding();
+  navigate('topics');
+}
 function completeLesson() {
   const completedLessons = storage.get('codequest_completed_lessons') || [];
   if (!completedLessons.includes(state.lesson.lessonId)) {
@@ -635,7 +654,7 @@ function checkLessonAnswer(qIndex, selected, correct) {
 function showAllLessons(topic) {
   // For now, show an alert. Could expand to a full lessons list modal
   const lessons = LESSONS[topic] || [];
-  alert(`${topic.charAt(0).toUpperCase() + topic.slice(1)} Lessons:\n\n${lessons.map((l, i) => `${i + 1}. ${l.title}`).join('\n')}`);
+  snackbar.info(`${topic.charAt(0).toUpperCase() + topic.slice(1)}: ${lessons.length} lessons available`);
 }
 
 // Settings
@@ -690,7 +709,7 @@ function shareScore(accuracy, topic) {
     navigator.share({ text }).catch(() => { });
   } else {
     navigator.clipboard.writeText(text).then(() => {
-      alert('Score copied to clipboard!');
+      snackbar.success('📋 Score copied to clipboard!');
     });
   }
 }
@@ -769,7 +788,7 @@ function importData(input) {
       setTimeout(() => location.reload(), 1000);
     } catch (error) {
       logger.error('Failed to import data: ' + error.message);
-      alert('Invalid backup file');
+      snackbar.error('❌ Invalid backup file - Please check the file format');
     }
   };
   reader.readAsText(file);
@@ -781,12 +800,12 @@ function saveApiKeyFromInput() {
     const key = input.value.trim();
     if (key) {
       storage.saveApiKey(key);
-      alert('API Key saved! You will now use your custom quota.');
+      snackbar.success('✅ API Key saved! Using your custom quota now');
       logger.success('Custom API Key saved');
     } else {
       if (confirm('Clear custom API Key and use default?')) {
         storage.saveApiKey(null);
-        alert('Custom key cleared.');
+        snackbar.info('Custom key cleared - Using default if available');
       }
     }
   }
